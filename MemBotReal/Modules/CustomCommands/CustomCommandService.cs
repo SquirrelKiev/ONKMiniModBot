@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using BotBase;
 using Discord;
+using Fergun.Interactive;
+using Fergun.Interactive.Pagination;
 using MemBotReal.Database;
 using MemBotReal.Database.Models;
 using Microsoft.EntityFrameworkCore;
@@ -60,26 +62,43 @@ public class CustomCommandService(DbService dbService)
             new ComponentBuilder());
     }
 
-    public async Task<MessageContents> ListCommands(IGuild guild)
+    public async Task<LazyPaginator> ListCommands(IUser executor, IGuild guild)
     {
         await using var context = dbService.GetDbContext();
 
         var commands = await context.CustomCommands.Where(x => x.GuildId == guild.Id).ToArrayAsync();
+        const int maxPerPage = 50;
 
-        var desc = new StringBuilder();
-        foreach (var command in commands.Take(50))
+        var paginator = new LazyPaginatorBuilder()
+            .AddUser(executor)
+            .WithPageFactory(PageFactory)
+            .WithFooter(PaginatorFooter.PageNumber)
+            .WithMaxPageIndex(commands.Length / maxPerPage)
+            .WithDefaultEmotes()
+            .WithActionOnCancellation(ActionOnStop.DisableInput)
+            .Build();
+
+        return paginator;
+
+        Task<PageBuilder> PageFactory(int page)
         {
-            desc.AppendLine($"- `{command.Name}`");
-        }
+            var desc = new StringBuilder();
+            foreach (var command in commands.Skip(page * maxPerPage).Take(maxPerPage))
+            {
+                desc.AppendLine($"- `{command.Name}`");
+            }
 
-        if (commands.Length == 0)
-        {
-            desc.AppendLine("No custom commands.");
-        }
+            if (commands.Length == 0)
+            {
+                desc.AppendLine("No custom commands.");
+            }
 
-        return new MessageContents(new EmbedBuilder().WithTitle($"Custom commands for {guild.Name}")
-            .WithDescription(desc.ToString())
-            .WithFooter($"Total of {commands.Length} commands.")
-            .WithColor(0x865892), new ComponentBuilder());
+            var eb = new PageBuilder().WithTitle($"Custom commands for {guild.Name}")
+                .WithDescription(desc.ToString())
+                .WithFooter($"Total of {commands.Length} commands.")
+                .WithColor(0x865892);
+
+            return Task.FromResult(eb);
+        }
     }
 }

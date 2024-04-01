@@ -1,10 +1,11 @@
 ﻿using BotBase;
 using Discord.Interactions;
+using Fergun.Interactive;
 
 namespace MemBotReal.Modules.CustomCommands;
 
 [Group("commands", "Stuff related to custom commands.")]
-public class CustomCommandModule(CustomCommandService commandService) : BotModule
+public class CustomCommandModule(CustomCommandService commandService, InteractiveService interactiveService) : BotModule
 {
     [InteractionsRequireModRole]
     [SlashCommand("add", "Adds a custom command.")]
@@ -28,7 +29,8 @@ public class CustomCommandModule(CustomCommandService commandService) : BotModul
     [SlashCommand("list", "Lists (almost) all the custom commands.")]
     public async Task ListCommands()
     {
-        await DeferAsync();
-        await FollowupAsync(await commandService.ListCommands(Context.Guild));
+        var paginator = await commandService.ListCommands(Context.User, Context.Guild);
+
+        await interactiveService.SendPaginatorAsync(paginator, Context.Interaction, TimeSpan.FromMinutes(5));
     }
 }

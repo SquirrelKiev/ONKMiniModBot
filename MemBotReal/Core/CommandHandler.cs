@@ -1,6 +1,4 @@
 ﻿using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Channels;
 using BotBase;
 using BotBase.Database;
 using BotBase.Modules.RedButton;
@@ -8,8 +6,8 @@ using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Fergun.Interactive;
 using MemBotReal.Database;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 // ReSharper disable ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
@@ -22,7 +20,8 @@ namespace MemBotReal
         DiscordSocketClient client,
         BotConfigBase botConfig,
         IServiceProvider services,
-        DbService dbService)
+        DbService dbService,
+        InteractiveService interactiveService)
     {
         protected readonly InteractionService interactionService = interactionService;
         protected readonly CommandService commandService = commandService;
@@ -206,6 +205,9 @@ namespace MemBotReal
 
             if (ctx.Interaction is SocketMessageComponent componentInteraction)
             {
+                if (interactiveService.Callbacks.ContainsKey(componentInteraction.Message.Id))
+                    return;
+
                 var ogRes = componentInteraction.Message;
 
                 var ogAuthor = ogRes.Interaction?.User.Id;

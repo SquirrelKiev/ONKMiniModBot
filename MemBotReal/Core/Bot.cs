@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Fergun.Interactive;
 using MemBotReal.Database;
 using MemBotReal.Modules.ConfigCommand;
 using MemBotReal.Modules.ConfigCommand.Pages;
@@ -75,7 +76,8 @@ public class Bot
                 .AddSingleton<AboutService>()
                 // config command
                 .AddSingleton<ConfigCommandService>()
-                .AddSingleton(x => (ConfigCommandServiceBase<ConfigPage.Page>)x.GetService<ConfigCommandService>()!);
+                .AddSingleton(x => (ConfigCommandServiceBase<ConfigPage.Page>)x.GetService<ConfigCommandService>()!)
+                .AddSingleton<InteractiveService>();
         ;
 
         collection.Scan(scan => scan.FromAssemblyOf<Bot>()

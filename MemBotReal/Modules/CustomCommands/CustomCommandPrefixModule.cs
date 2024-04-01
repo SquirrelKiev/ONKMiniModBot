@@ -6,11 +6,11 @@ using Discord.Interactions;
 namespace MemBotReal.Modules.CustomCommands;
 
 // :pls:
-public class CustomCommandCommand(CustomCommandService commandService) : PrefixModule
+public class CustomCommandPrefixModule(CustomCommandService commandService, Fergun.Interactive.InteractiveService interactiveService) : PrefixModule
 {
     [CommandsRequireModRole]
     [Command("add")]
-    public async Task AddCommand(string name, string contents)
+    public async Task AddCommand(string name, [Remainder] string contents)
     {
         await DeferAsync();
 
@@ -32,6 +32,8 @@ public class CustomCommandCommand(CustomCommandService commandService) : PrefixM
     {
         await DeferAsync();
 
-        await ReplyAsync(await commandService.ListCommands(Context.Guild));
+        var paginator = await commandService.ListCommands(Context.User, Context.Guild);
+
+        await interactiveService.SendPaginatorAsync(paginator, Context.Channel, TimeSpan.FromMinutes(5));
     }
 }

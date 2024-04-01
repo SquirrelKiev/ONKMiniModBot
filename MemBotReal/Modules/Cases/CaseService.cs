@@ -1,6 +1,10 @@
-﻿using System.Text;
+﻿using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using BotBase;
 using Discord;
+using Fergun.Interactive.Pagination;
+using Fergun.Interactive;
 using LinqToDB.EntityFrameworkCore;
 using MemBotReal.Database;
 using MemBotReal.Database.Models;
@@ -50,40 +54,74 @@ public class CaseService
             $"in <#{invokeMessage.Channel.Id}>");
     }
 
-    public async Task<MessageContents> ListCases(BotDbContext context, IGuildUser offender)
+    public async Task<Paginator> ListCasesBy(BotDbContext context, IUser executor, IGuildUser mod)
     {
-        var cases = (await GetCases(context, offender).ToArrayAsync());
+        var cases = await GetCasesBy(context, mod).ToArrayAsync();
 
-        var embed = new EmbedBuilder()
-            .WithTitle("Moderation action")
-            .WithColor(0x48daf7);
+        return await ListCases(executor, cases);
+    }
 
-        var desc = new StringBuilder();
+    public async Task<Paginator> ListCases(BotDbContext context, IUser executor, IGuildUser offender)
+    {
+        var cases = await GetCases(context, offender).ToArrayAsync();
 
-        foreach (var aCase in cases.TakeLast(5).Reverse())
+        return await ListCases(executor, cases);
+    }
+
+    public async Task<Paginator> ListCases(IUser executor, Case[] cases)
+    {
+        const int maxPerPage = 5;
+
+        var paginator = new LazyPaginatorBuilder()
+            .AddUser(executor)
+            .WithPageFactory(PageFactory)
+            .WithFooter(PaginatorFooter.PageNumber)
+            .WithMaxPageIndex(cases.Length / maxPerPage)
+            .WithDefaultEmotes()
+            .WithActionOnCancellation(ActionOnStop.DisableInput)
+            .Build();
+
+        return paginator;
+
+        Task<PageBuilder> PageFactory(int page)
         {
-            desc.AppendLine($"Case {aCase.Id} ({aCase.CaseType})")
-                .AppendLine($"-*responsible: <@{aCase.ModId}>*")
-                .AppendLine($"-*offender: <@{aCase.OffenderId}>*")
-                .AppendLine("**-Reason:**")
-                .AppendLine("```")
-                .AppendLine(aCase.Reason)
-                .AppendLine("```");
+            var embed = new PageBuilder()
+                .WithTitle("Moderation action")
+                .WithColor(0x48daf7);
+
+            var desc = new StringBuilder();
+
+            foreach (var aCase in cases.Reverse().Skip(page * maxPerPage).Take(maxPerPage))
+            {
+                desc.AppendLine($"Case {aCase.Id} ({aCase.CaseType})")
+                    .AppendLine($"-*responsible: <@{aCase.ModId}>*")
+                    .AppendLine($"-*offender: <@{aCase.OffenderId}>*")
+                    .AppendLine("**-Reason:**")
+                    .AppendLine("```")
+                    .AppendLine(aCase.Reason)
+                    .AppendLine("```");
+            }
+
+            if (cases.Length == 0)
+                desc.AppendLine("No cases.");
+
+            embed.WithDescription(desc.ToString());
+            embed.WithFooter($"Total infractions: {cases.Length}");
+
+            return Task.FromResult(embed);
         }
-
-        if (cases.Length == 0)
-            desc.AppendLine("No cases.");
-
-        embed.WithDescription(desc.ToString());
-        embed.WithFooter($"Total infractions: {cases.Length}");
-
-        return new MessageContents(embed, new ComponentBuilder());
     }
 
     public IQueryable<Case> GetCases(BotDbContext context, IGuildUser offender)
     {
         return context.Cases.Where(x =>
             x.GuildId == offender.GuildId && x.OffenderId == offender.Id);
+    }
+
+    public IQueryable<Case> GetCasesBy(BotDbContext context, IGuildUser mod)
+    {
+        return context.Cases.Where(x =>
+            x.GuildId == mod.GuildId && x.ModId == mod.Id);
     }
 
     public IQueryable<Case> GetWarnCases(BotDbContext context, IGuildUser offender)
