@@ -26,6 +26,15 @@ public class NickService(DbService dbService)
                 "[Cmd invoke happened here](https://discord.com/channels/{offender.GuildId}/{invokeMessage.Channel.Id}/{invokeMessage.Id}) " +
                 $"in <#{invokeMessage.Channel.Id}>", loggingChannel, Color.DarkGreen);
 
+            try
+            {
+                await user.SendMessageAsync($"Your nickname on the {mod.Guild.Name} server was changed to {nickname}.");
+            }
+            catch (Exception ex)
+            {
+                // swallow ex
+            }
+
             var embed = new EmbedBuilder().WithDescription(
                 $"Successfully set <@{user.Id}>'s nickname to {nickname}.").WithColor(0xff3eb3);
 

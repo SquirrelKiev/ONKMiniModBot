@@ -19,6 +19,6 @@ public class NickPrefixModule(NickService nickService) : PrefixModule
             return;
         }
 
-        await ReplyAsync(await nickService.ChangeNick(await ((IGuild)Context.Guild).GetUserAsync(user.Id), user, nickname, Context.Message));
+        await ReplyAsync(await nickService.ChangeNick(await ((IGuild)Context.Guild).GetUserAsync(Context.User.Id), user, nickname, Context.Message));
     }
 }

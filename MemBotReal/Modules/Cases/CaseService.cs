@@ -95,6 +95,15 @@ public class CaseService
     {
         var existingCases = await GetWarnCases(context, offender).CountAsync();
 
+        try
+        {
+            await offender.SendMessageAsync($"You were warned on the {offender.Guild.Name} server for **{reason}**.");
+        }
+        catch (Exception ex)
+        {
+            // swallow ex
+        }
+
         await AddCase(context,
             CaseType.Warn,
             offender,
