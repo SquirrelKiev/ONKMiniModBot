@@ -38,6 +38,11 @@ public class DurationParser
         int seconds = GetIntValue(match, "seconds");
 
         timeSpan = new TimeSpan(days, hours, minutes, seconds);
+
+        // stopgap
+        if (days == 0 && hours == 0 && minutes == 0 && seconds == 0)
+            return false;
+
         return true;
     }
 

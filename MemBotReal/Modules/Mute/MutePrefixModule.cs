@@ -1,6 +1,7 @@
 ﻿using BotBase;
 using Discord;
 using Discord.Commands;
+using Serilog;
 
 namespace MemBotReal.Modules.Mute;
 
@@ -19,14 +20,19 @@ public class MutePrefixModule(MuteService muteService) : PrefixModule
 
         string? duration = "inf";
         string reason = optionalDurationAndReason;
-        if (split.Length > 1)
+        if (split.Length >= 1)
         {
             var potentialDuration = split[0];
 
             if (DurationParser.TryParse(potentialDuration, out _))
             {
+                Log.Debug("Farts");
+
                 duration = potentialDuration;
-                reason = split[1];
+                if (split.Length > 1)
+                    reason = split[1];
+                else
+                    reason = "No reason.";
             }
         }
 
