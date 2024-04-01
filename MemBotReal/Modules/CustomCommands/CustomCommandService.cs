@@ -67,7 +67,7 @@ public class CustomCommandService(DbService dbService)
         await using var context = dbService.GetDbContext();
 
         var commands = await context.CustomCommands.Where(x => x.GuildId == guild.Id).ToArrayAsync();
-        const int maxPerPage = 50;
+        const int maxPerPage = 20;
 
         var paginator = new LazyPaginatorBuilder()
             .AddUser(executor)
@@ -88,14 +88,8 @@ public class CustomCommandService(DbService dbService)
                 desc.AppendLine($"- `{command.Name}`");
             }
 
-            if (commands.Length == 0)
-            {
-                desc.AppendLine("No custom commands.");
-            }
-
-            var eb = new PageBuilder().WithTitle($"Custom commands for {guild.Name}")
+            var eb = new PageBuilder().WithTitle($"Custom commands for {guild.Name} ({commands.Length} total)")
                 .WithDescription(desc.ToString())
-                .WithFooter($"Total of {commands.Length} commands.")
                 .WithColor(0x865892);
 
             return Task.FromResult(eb);

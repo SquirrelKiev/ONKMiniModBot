@@ -86,7 +86,7 @@ public class CaseService
         Task<PageBuilder> PageFactory(int page)
         {
             var embed = new PageBuilder()
-                .WithTitle("Moderation action")
+                .WithTitle($"Moderation action ({cases.Length} total)")
                 .WithColor(0x48daf7);
 
             var desc = new StringBuilder();
