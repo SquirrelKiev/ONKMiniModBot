@@ -4,17 +4,17 @@ FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 as build-env
 
 WORKDIR /source
 
-COPY DibariBot/*.csproj DibariBot/
+COPY MemBotReal/*.csproj MemBotReal/
 
 ARG TARGETARCH
 
-RUN dotnet restore DibariBot/ -a $TARGETARCH
+RUN dotnet restore MemBotReal/ -a $TARGETARCH
 
 COPY . .
 
 RUN set -xe; \
 dotnet publish -c Release -a $TARGETARCH -o /app; \
-chmod +x /app/DibariBot
+chmod +x /app/MemBotReal
 
 FROM mcr.microsoft.com/dotnet/runtime:8.0 as runtime
 
@@ -26,4 +26,4 @@ VOLUME [ "/data" ]
 
 ENV BOT_CONFIG_LOCATION /data/botconfig.yaml
 
-CMD dotnet DibariBot.dll
+CMD dotnet MemBotReal.dll
