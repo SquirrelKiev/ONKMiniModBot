@@ -23,7 +23,7 @@ public class NickService(DbService dbService)
             var loggingChannel = await user.Guild.GetTextChannelAsync(guildConfig.LoggingChannel);
 
             await CaseService.LogCase(user, mod, $"Changed nickname to {nickname}", "N/A",
-                "[Cmd invoke happened here](https://discord.com/channels/{offender.GuildId}/{invokeMessage.Channel.Id}/{invokeMessage.Id}) " +
+                $"[Cmd invoke happened here](https://discord.com/channels/{user.GuildId}/{invokeMessage.Channel.Id}/{invokeMessage.Id}) " +
                 $"in <#{invokeMessage.Channel.Id}>", loggingChannel, Color.DarkGreen);
 
             try
