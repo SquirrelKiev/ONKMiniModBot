@@ -168,5 +168,7 @@ public class Bot
         await services.GetRequiredService<CommandHandler>().OnReady(Assembly.GetExecutingAssembly());
         delayedExecuteService ??= services.GetRequiredService<DelayedExecuteService>();
         delayedExecuteService.StartBackgroundTask();
+
+        await Client.SetGameAsync("Neil's playlist", type: ActivityType.Listening);
     }
 }
