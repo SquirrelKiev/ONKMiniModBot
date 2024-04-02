@@ -7,6 +7,7 @@ using MemBotReal.Database;
 using MemBotReal.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 
 namespace MemBotReal.Modules.CustomCommands;
 
@@ -94,5 +95,16 @@ public class CustomCommandService(DbService dbService)
 
             return Task.FromResult(eb);
         }
+    }
+
+    public async Task<string> CommandsAsJson(IGuild guild)
+    {
+        await using var context = dbService.GetDbContext();
+
+        var commands = await context.CustomCommands.Where(x => x.GuildId == guild.Id).ToArrayAsync();
+
+        var json = JsonConvert.SerializeObject(commands, Formatting.Indented);
+
+        return json;
     }
 }
